@@ -17,7 +17,8 @@
 ├── backend/                  FastAPI（Python） 后端
 │   ├── app/routers/          每个业务模块一组接口
 │   ├── app/services/         业务规则与状态流转
-│   └── app/store.py          内存数据仓库与示例数据
+│   ├── app/efficiency.py     岸桥效率算法（版本化，升级后可重算历史记录）
+│   └── app/store.py          JSON 文件数据仓库（data/platform.json）
 ├── .gitignore
 └── docker-compose.yml
 ```
@@ -69,6 +70,21 @@ npm run dev
 | 空箱堆存 | `emptystack` | 空箱 | 空箱编号、箱主代码、箱型尺寸 |
 | 能耗监测 | `energy` | 能耗记录 | 记录编号、设备类型、设备编号 |
 | 安全巡检 | `safetycheck` | 巡检记录 | 巡检编号、巡检区域、巡检日期 |
+
+## 岸桥效率：一份记录、统一重算
+
+岸桥作业效率不再随动作直接覆盖，而是收口到每台岸桥一份效率记录：
+
+- 分配作业、补数/换司机、释放岸桥都向同一份流水追加分段（按档位记录箱量与分钟），
+  再用 `app/efficiency.py` 里当前版本的算法统一重算；面板、详情、导出、其他页面读的都是它。
+- 提交必须带客户端读到的 `version`。两人同时抢同一台岸桥时只认先落库的那次（`409 已被占用`）；
+  记录被先落库的提交顶过后，晚到的提交同样 `409` 拒绝，不覆盖前面的值。
+- 任一档位效率超过该型号额定值，整次提交不落库并点明越界档位（`422`）。
+- 算法在 `app/efficiency.py` 换版后，调用 `POST /api/quaycrane/recalculate-efficiency`
+  即可按原流水重算全部历史记录；其他页面通过 `GET /api/quaycrane/efficiency-summary`
+  与调度面板同源读取（如工班管理页）。
+- 数据持久化在 `backend/data/platform.json`（可用环境变量 `PLATFORM_DATA_DIR` 改目录），
+  进程重启、刷新后读到的仍是最新落库的值。
 
 ## 约定
 

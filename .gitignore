@@ -85,3 +85,6 @@ desktop.ini
 *.db
 *.pid
 *.seed
+
+# ===== 运行期数据（JSON 持久化）=====
+backend/data/

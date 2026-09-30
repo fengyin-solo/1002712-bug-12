@@ -5,9 +5,15 @@ services:
       - "8000:8000"
     environment:
       - APP_ENV=local
+      - PLATFORM_DATA_DIR=/srv/data
+    volumes:
+      - quaycrane_data:/srv/data
   frontend:
     build: ./frontend
     ports:
       - "5173:5173"
     depends_on:
       - backend
+
+volumes:
+  quaycrane_data:
