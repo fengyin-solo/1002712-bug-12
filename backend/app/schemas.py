@@ -19,6 +19,8 @@ class ActionResult(BaseModel):
     ok: bool
     message: str
     entry: dict[str, Any] | None = None
+    # 并发冲突标记：晚到的提交未覆盖先落库的值，仅提示已被占用。
+    conflict: bool = False
 
 
 class EntryPayload(BaseModel):
